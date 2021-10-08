@@ -132,7 +132,7 @@ todo := Todo{
   Content: "周二两点，全体成员",
 }
 
-if err := client.Class("Todo").Create(&todo); err != nil {
+if err := Client.Class("Todo").Create(&todo); err != nil {
   panic(err)
 }
 ```
@@ -627,12 +627,12 @@ todo := Todo {
   Priority: 2,
 }
 
-if err := client.Class("Todo").Create(&todo); err != nil {
+if err := Client.Class("Todo").Create(&todo); err != nil {
     panic(err)
 }
 
 // 使用 map
-if err := client.Class("Todo").Create(map[string]interface{}{
+if err := Client.Class("Todo").Create(map[string]interface{}{
     "title": "马拉松报名",
     "priority": 2,
 }); err != nil {
@@ -783,13 +783,13 @@ DateTime createdAt = todo.createdAt;
 ```go
 // 使用自定义类型对象
 todo := new(Todo)
-if err := client.Class("Todo").ID("582570f38ac247004f39c24b").Get(todo); err != nil {
+if err := Client.Class("Todo").ID("582570f38ac247004f39c24b").Get(todo); err != nil {
   panic(err)
 }
 
 // 使用 Object
 object := new(leancloud.Object)
-if err := client.Class("Todo").ID("582570f38ac247004f39c24b").Get(object); err != nil {
+if err := Client.Class("Todo").ID("582570f38ac247004f39c24b").Get(object); err != nil {
   panic(err)
 }
 ```
@@ -944,24 +944,24 @@ diff := Todo{
   Title: "Another Meeting",
 }
 
-if err := client.Class("Todo").ID("582570f38ac247004f39c24b").Update(diff); err != nil {
+if err := Client.Class("Todo").ID("582570f38ac247004f39c24b").Update(diff); err != nil {
   panic(err)
 }
 
 // 使用 map[string]interface{} 更新
 
-if err := client.Class("Todo").ID("582570f38ac247004f39c24b").Update(map[string]interface{}{
+if err := Client.Class("Todo").ID("582570f38ac247004f39c24b").Update(map[string]interface{}{
   "title": "Another Meeting",
 }); err != nil {
   panic(err)
 }
 ```
 
-如果已经有之前保存的对象，则可以使用 client.Object(todo).Update 代替 client.Class("Todo").ID(id).Update 来更新对象。
+如果已经有之前保存的对象，则可以使用 Client.Object(todo).Update 代替 Client.Class("Todo").ID(id).Update 来更新对象。
 
 #### 关于 Go 中的零值
 
-由于 Go 的特性，所有的变量在被声明后都会被初始化为对应类型的 **零值**，例如 `int` 的零值为 `0`，`string` 的零值为 `""`等等。你可以通过嵌套的方式在
+由于 Go 的特性，所有的变量在被声明后都会被初始化为对应类型的 **零值**，例如 `int` 的零值为 `0`，`string` 的零值为 `""`等等。
 
 那么在使用 `Update` 时传入自定义结构体就会带来一个问题：字段的零值到底是用户设置的还是被默认初始化的？
 
@@ -982,9 +982,9 @@ type Todo struct {
 
 例如，用户的账户表 `Account` 有一个余额字段 `balance`。为避免余额出现负值，只有当金额小于或等于余额的时候才能接受请求：
 ```go
-query := client.Class("Account").NewQuery().GreaterThanOrEqualTo("balance", 100)
+query := Client.Class("Account").NewQuery().GreaterThanOrEqualTo("balance", 100)
 
-if err := client.Class("Account").ID("5745557f71cfe40068c6abe0").UpdateWithQuery(map[string]interface{}{
+if err := Client.Class("Account").ID("5745557f71cfe40068c6abe0").UpdateWithQuery(map[string]interface{}{
     "balance": leancloud.OpIncrement(-100),
 }, query); err != nil {
     panic(err)
@@ -1437,13 +1437,13 @@ await todo.save();
 
 {% if platform_name === "Go" %}
 ```go
-alarm1 := time.Parse("2006-01-02 15:04:05Z", "2018-04-30 07:10:00Z")
-alarm2 := time.Parse("2006-01-02 15:04:05Z", "2018-04-30 07:20:00Z")
-alarm3 := time.Parse("2006-01-02 15:04:05Z", "2018-04-30 07:30:00Z")
+alarm1 ,_ := time.Parse("2006-01-02 15:04:05Z", "2018-04-30 07:10:00Z")
+alarm2 ,_ := time.Parse("2006-01-02 15:04:05Z", "2018-04-30 07:20:00Z")
+alarm3 ,_ := time.Parse("2006-01-02 15:04:05Z", "2018-04-30 07:30:00Z")
 
-alarms := time.Time{alarm1, alarm2, alarm3}
+alarms := []time.Time{alarm1, alarm2, alarm3}
 
-if err := client.Class("Todo").Create(map[string]interface{}{
+if err := Client.Class("Todo").Create(map[string]interface{}{
     "alarms": leancloud.OpAdd(alarms),
 }); err != nil {
     panic(err)
@@ -1539,7 +1539,7 @@ await todo.save();
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.Class("Todo").ID("582570f38ac247004f39c24b").Destroy(); err != nil {
+if err := Client.Class("Todo").ID("582570f38ac247004f39c24b").Destroy(); err != nil {
     panic(err)
 }
 ```
@@ -1957,22 +1957,25 @@ type Comment struct {
     Content string `json:"content"`
 }
 
-post := Post{
-    Title: "饿了……",
-    Content: "中午去哪吃呢？",
-}
+func PostPosts(c echo.Context) error {
+	post := Post{
+		Title: "饿了……",
+		Content: "后天去哪吃呢？",
+	}
 
-if err := client.Class("Post").Create(&post); err != nil {
-    panic(err)
-}
+	if _,err := Client.Class("Post").Create(&post); err != nil {
+		panic(err)
+	}
 
-comment := Comment{
-    Parent: post, //  嵌入已有的对象
-    Content: "当然是肯德基啦！",
-}
+	comment := Comment{
+		Parent: post, //  嵌入已有的对象
+		Content: "当然是万岛啦！",
+	}
 
-if err := client.Class("Comment").Create(&comment); err != nil {
-    panic(err)
+	if _,err := Client.Class("Comment").Create(comment); err != nil {
+		panic(err)
+	}
+	return nil
 }
 ```
 注意：**只有已经保存到云端的对象可以嵌入。**
@@ -2230,7 +2233,7 @@ type Student struct {
 
 results := make([]Student, 0)
 
-if err := client.Class("Student").NewQuery().EqualTo("lastName", "Smith").Find(&results); err != nil {
+if err := Client.Class("Student").NewQuery().EqualTo("lastName", "Smith").Find(&results); err != nil {
     panic(err)
 }
 ```
@@ -2274,7 +2277,7 @@ query.whereNotEqualTo('firstName', 'Jack');
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("Student").NewQuery().NotEqualTo("firstName", "Jack")
+query := Client.Class("Student").NewQuery().NotEqualTo("firstName", "Jack")
 ```
 {% endif %}
 对于能够排序的属性（比如数字、字符串），可以进行比较查询：
@@ -2360,16 +2363,16 @@ query.whereGreaterThanOrEqualTo('age', 18);
 {% if platform_name === "Go" %}
 ```go
 // 限制 age < 18
-query := client.Class("Student").NewQuery().LessThan("age", 18)
+query := Client.Class("Student").NewQuery().LessThan("age", 18)
 
 // 限制 age <= 18
-query := client.Class("Student").NewQuery().LessThanOrEqualTo("age", 18)
+query := Client.Class("Student").NewQuery().LessThanOrEqualTo("age", 18)
 
 // 限制 age > 18
-query := client.Class("Student").NewQuery().GreaterThan("age", 18)
+query := Client.Class("Student").NewQuery().GreaterThan("age", 18)
 
 // 限制 age >= 18
-query := client.Class("Student").NewQuery().GreaterThanOrEqualTo("age", 18)
+query := Client.Class("Student").NewQuery().GreaterThanOrEqualTo("age", 18)
 ```
 {% endif %}
 可以在同一个查询中设置多个条件，这样可以获取满足所有条件的结果。可以理解为所有的条件是 `AND` 的关系：
@@ -2409,7 +2412,7 @@ query.whereGreaterThan('age', 18);
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("Student").NewQuery().EqualTo("firstName", "Jack").GreaterThan("age", 18)
+query := Client.Class("Student").NewQuery().EqualTo("firstName", "Jack").GreaterThan("age", 18)
 ```
 {% endif %}
 可以通过指定 `limit` 限制返回结果的数量（默认为 `100`）：
@@ -2450,7 +2453,7 @@ query.limit(10);
 {% if platform_name === "Go" %}
 ```go
 // 最多获取 10 条结果
-query := client.Class("Student").NewQuery().Limit(10)
+query := Client.Class("Student").NewQuery().Limit(10)
 ```
 {% endif %}
 由于性能原因，`limit` 最大只能设为 `1000`。即使将其设为大于 `1000` 的数，云端也只会返回 1,000 条结果。
@@ -2510,7 +2513,7 @@ LCObject todo = await query.first();
 ```go
 todo := new(Todo)
 
-if err := client.Class("Todo").NewQuery().EqualTo("priority", 2).First(todo); err != nil {
+if err := Client.Class("Todo").NewQuery().EqualTo("priority", 2).First(todo); err != nil {
     panic(err)
 } 
 ```
@@ -2551,7 +2554,7 @@ query.skip(20);
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("Todo").NewQuery().Skip(20)
+query := Client.Class("Todo").NewQuery().Skip(20)
 ```
 {% endif %}
 把 `skip` 和 `limit` 结合起来，就能实现翻页功能：
@@ -2602,7 +2605,7 @@ query.skip(20);
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("Todo").NewQuery().EqualTo("priority", 2).Limit(10).Skip(20)
+query := Client.Class("Todo").NewQuery().EqualTo("priority", 2).Limit(10).Skip(20)
 ```
 {% endif %}
 需要注意的是，`skip` 的值越高，查询所需的时间就越长。作为替代方案，可以通过设置 `createdAt` 或 `updatedAt` 的范围来实现更高效的翻页，因为它们都自带索引。
@@ -2661,10 +2664,10 @@ query.orderByDescending('createdAt');
 {% if platform_name === "Go" %}
 ```go
 // 按 createdAt 升序排列
-query := client.Class("Todo").NewQuery().Order("createdAt")
+query := Client.Class("Todo").NewQuery().Order("createdAt")
 
 // 按 createdAt 降序排列
-query := client.Class("Todo").NewQuery().Order("-createdAt")
+query := Client.Class("Todo").NewQuery().Order("-createdAt")
 ```
 {% endif %}
 还可以为同一个查询添加多个排序规则；
@@ -2704,7 +2707,7 @@ query.addDescendingOrder('createdAt');
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("Todo").NewQuery().Order("priority").Order("-createdAt")
+query := Client.Class("Todo").NewQuery().Order("priority").Order("-createdAt")
 ```
 {% endif %}
 下面的代码可用于查找包含或不包含某一属性的对象：
@@ -2712,10 +2715,10 @@ query := client.Class("Todo").NewQuery().Order("priority").Order("-createdAt")
 {% if platform_name === "Go" %}
 ```go
 // 查找包含 "image" 的对象
-query := client.Class("Todo").NewQuery().Exists("image")
+query := Client.Class("Todo").NewQuery().Exists("image")
 
 // 查找不包含 "image" 的对象
-query := client.Class("Todo").NewQuery().NotExists("image")
+query := Client.Class("Todo").NewQuery().NotExists("image")
 ```
 {% endif  %}
 
@@ -2871,7 +2874,7 @@ String notes = todo['notes']; // null
 ```go
 todos := make([]Todo, 0)
 
-if err := client.Class("Todo").NewQuery().Select("title", "content").Find(&todo); err != nil {
+if err := Client.Class("Todo").NewQuery().Select("title", "content").Find(&todo); err != nil {
     panic(err)
 }
 ```
@@ -2932,7 +2935,7 @@ query.whereStartsWith('title', 'lunch');
 {% if platform_name === "Go" %}
 ```go
 // 相当于 SQL 中的 title LIKE 'lunch%'
-query := client.Class("Todo").NewQuery().StartsWith("title", "lunch")
+query := Client.Class("Todo").NewQuery().StartsWith("title", "lunch")
 ```
 {% endif %}
 
@@ -2980,7 +2983,7 @@ query.whereContains('title', 'lunch');
 {% if platform_name === "Go" %}
 ```go
 // 相当于 SQL 中的 title LIKE '%lunch%'
-query := client.Class("Todo").NewQuery().Contains("title", "lunch")
+query := Client.Class("Todo").NewQuery().Contains("title", "lunch")
 ```
 {% endif %}
 
@@ -3027,7 +3030,7 @@ query.whereMatches('title', '{{ regexFlutter() | safe }}', modifiers: 'i');
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("Todo").NewQuery().Regexp("title", "^((?!ticket).)*$", "i")
+query := Client.Class("Todo").NewQuery().Regexp("title", "^((?!ticket).)*$", "i")
 ```
 {% endif %}
 {# 2016-12-29 DO NOT USE markdown to rewrite the previous block #}
@@ -3102,7 +3105,7 @@ query.whereSizeEqualTo('tags', 3);
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("Todo").NewQuery().EqualTo("tags", "工作")
+query := Client.Class("Todo").NewQuery().EqualTo("tags", "工作")
 ```
 {% endif %}
 下面的代码查找所有数组属性 `tags` **同时包含** `工作`、`销售` 和 `会议` 的对象：
@@ -3137,10 +3140,10 @@ query.whereContainsAll('tags', ['工作', '销售', '会议']);
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("Todo").NewQuery().ContainsAll("tags", []string{"工作", "销售", "会议"})
+query := Client.Class("Todo").NewQuery().ContainsAll("tags", []string{"工作", "销售", "会议"})
 ```
 {% endif %}
-如需获取某一属性值包含一列值中任意一个值的对象，可以直接用 `{% if platform_name === "JavaScript" %}containedIn{% endif %}{% if platform_name === "Python" %}contained_in{% endif %}{% if platform_name === "PHP" %}containedIn{% endif %}{% if platform_name === "Swift" %}.containedIn{% endif %}` 而无需执行多次查询。下面的代码构建的查询会查找所有 `priority` 为 `1` **或** `2` 的 todo 对象：
+如需获取某一属性值包含一列值中任意一个值的对象，可以直接用 `{% if platform_name === "JavaScript" %}containedIn{% endif %}{% if platform_name === "Python" %}contained_in{% endif %}{% if platform_name === "PHP" %}containedIn{% endif %}{% if platform_name === "Swift" %}.containedIn{% endif %}{% if platform_name === "Go" %}.In{% endif %}` 而无需执行多次查询。下面的代码构建的查询会查找所有 `priority` 为 `1` **或** `2` 的 todo 对象：
 
 
 {% if platform_name === "JavaScript" %}
@@ -3261,14 +3264,29 @@ List<LCObject> results = await priorityOneOrTwo.find();
 
 {% if platform_name === "Go" %}
 ```go
-// 暂不支持
+// 单个查询
+todos := []Todo{}
+priorityOneOrTwo := Client.Class("Todo").NewQuery().In("priority",[]int{1,2})
+priorityOneOrTwo.Find(&todos)
+/*这样就可以了 :)
+
+---------------
+	      vs.
+---------------
+
+多个查询*/
+todos:= []Todo{}
+priorityOne :=Client.Class("Todo").NewQuery().EqualTo("priority",1)
+priorityTwo :=Client.Class("Todo").NewQuery().EqualTo("priority",2)
+priorityOneOrTwo:=Client.Class("Todo").NewQuery().Or(priorityOne,priorityTwo)
+priorityOneOrTwo.Find(&todos)
 ```
 {% endif %}
-反过来，还可以用 `{% if platform_name === "JavaScript" %}notContainedIn{% endif %}{% if platform_name === "Python" %}not_contained_in{% endif %}{% if platform_name === "PHP" %}notContainedIn{% endif %}{% if platform_name === "Swift" %}.notContainedIn{% endif %}{% if platform_name === "Flutter" %}whereNotContainedIn{% endif %}` 来获取某一属性值不包含一列值中任何一个的对象。
+反过来，还可以用 `{% if platform_name === "JavaScript" %}notContainedIn{% endif %}{% if platform_name === "Python" %}not_contained_in{% endif %}{% if platform_name === "PHP" %}notContainedIn{% endif %}{% if platform_name === "Swift" %}.notContainedIn{% endif %}{% if platform_name === "Flutter" %}whereNotContainedIn{% endif %}{% if platform_name === "Go" %}NotIn{% endif %}` 来获取某一属性值不包含一列值中任何一个的对象。
 
 ### 关系查询
 
-查询关联数据有很多种方式，常见的一种是查询某一属性值为特定 `{{ baseObjectName }}` 的对象，这时可以像其他查询一样直接用 `{% if platform_name === "JavaScript" %}equalTo{% endif %}{% if platform_name === "Python" %}equal_to{% endif %}{% if platform_name === "PHP" %}equalTo{% endif %}{% if platform_name === "Swift" %}.equalTo{% endif %}`。比如说，如果每一条博客评论 `Comment` 都有一个 `post` 属性用来存放原文 `Post`，则可以用下面的方法获取所有与某一 `Post` 相关联的评论：
+查询关联数据有很多种方式，常见的一种是查询某一属性值为特定 `{{ baseObjectName }}` 的对象，这时可以像其他查询一样直接用 `{% if platform_name === "JavaScript" %}equalTo{% endif %}{% if platform_name === "Python" %}equal_to{% endif %}{% if platform_name === "PHP" %}equalTo{% endif %}{% if platform_name === "Swift" %}.equalTo{% endif %}{% if platform_name === "Go" %}.EqualTo{% endif %}`。比如说，如果每一条博客评论 `Comment` 都有一个 `post` 属性用来存放原文 `Post`，则可以用下面的方法获取所有与某一 `Post` 相关联的评论：
 
 
 {% if platform_name === "JavaScript" %}
@@ -3324,9 +3342,18 @@ query.whereEqualTo('post', post);
 List<LCObject> comments = await query.find();
 ```
 {% endif %}
+{% endif %}
+{% if platform_name === "Go" %}
+```go
+cmt:=[]Comment{}
+pst:=&Post{}
+Client.Class("Post").ID("57328ca079bc44005c2472d0").Get(pst)
+// comments 包含与 post 相关联的评论
+Client.Class("Comment").NewQuery().EqualTo("post",pst).Find(&cmt)
+```
+{% endif %}
 
-
-如需获取某一属性值为另一查询结果中任一 `{{ baseObjectName }}` 的对象，可以用 `{% if platform_name === "JavaScript" %}matchesQuery{% endif %}{% if platform_name === "Python" %}matches_query{% endif %}{% if platform_name === "PHP" %}matchesInQuery{% endif %}{% if platform_name === "Swift" %}.matchedQuery{% endif %}`。下面的代码构建的查询可以找到所有包含图片的博客文章的评论：
+如需获取某一属性值为另一查询结果中任一 `{{ baseObjectName }}` 的对象，可以用 `{% if platform_name === "JavaScript" %}matchesQuery{% endif %}{% if platform_name === "Python" %}matches_query{% endif %}{% if platform_name === "PHP" %}matchesInQuery{% endif %}{% if platform_name === "Swift" %}.matchedQuery{% endif %}{% if platform_name === "Go" %}.MatchesQuery{% endif %}`。下面的代码构建的查询可以找到所有包含图片的博客文章的评论：
 
 
 {% if platform_name === "JavaScript" %}
@@ -3375,9 +3402,16 @@ LCQuery query = LCQuery('Comment');
 query.whereMatchesQuery('post', innerQuery);
 ```
 {% endif %}
+{% if platform_name === "Flutter" %}
+```Go
+cmt:=[]Comment{}
+innerQuery:=Client.Class("Post").NewQuery().Exists("image")
+Client.Class("Comment").NewQuery().MatchesQuery("post",innerQuery).Find(&cmt)
+```
+{% endif %}
 
 
-如需获取某一属性值不是另一查询结果中任一 `{{ baseObjectName }}` 的对象，则使用 `{% if platform_name === "JavaScript" %}doesNotMatchQuery{% endif %}{% if platform_name === "Python" %}does_not_match_query{% endif %}{% if platform_name === "PHP" %}notMatchInQuery{% endif %}{% if platform_name === "Swift" %}.notMatchedQuery{% endif %}{% if platform_name === "Flutter" %}whereDoesNotMatchQuery{% endif %}`。
+如需获取某一属性值不是另一查询结果中任一 `{{ baseObjectName }}` 的对象，则使用 `{% if platform_name === "JavaScript" %}doesNotMatchQuery{% endif %}{% if platform_name === "Python" %}does_not_match_query{% endif %}{% if platform_name === "PHP" %}notMatchInQuery{% endif %}{% if platform_name === "Swift" %}.notMatchedQuery{% endif %}{% if platform_name === "Flutter" %}whereDoesNotMatchQuery{% endif %}{% if platform_name === "Go" %}NotMatchesQuery{% endif %}`。
 
 有时候可能需要获取来自另一个 class 的数据而不想进行额外的查询，此时可以在同一个查询上使用 `{% if platform_name === "JavaScript" %}include{% endif %}{% if platform_name === "Python" %}include{% endif %}{% if platform_name === "PHP" %}_include{% endif %}{% if platform_name === "Swift" %}.included{% endif %}{% if platform_name === "Flutter" %}include{% endif %}`。下面的代码查找最新发布的 10 条评论，并包含各自对应的博客文章：
 
@@ -3492,6 +3526,18 @@ for (LCObject comment in comments) {
 }
 ```
 {% endif %}
+{% if platform_name === "Go" %}
+```Go
+cmt:=[]Comment{}
+// 获取最新发布的，只获取 10 条，同时包含博客文章
+Client.Class("Comment").NewQuery().Order("-createdAt").Limit(10).Include("post").Find(&cmt)
+	for _,comment:=range cmt{
+	// 该操作无需网络连接
+		post:=comment.Parent
+		fmt.Println(post.Title)
+	}
+```
+{% endif %}
 
 
 可以用 dot 符号（`.`）来获取多级关系，例如 `post.author`，详见《点号使用指南》的《在查询对象时使用点号》一节。
@@ -3558,7 +3604,7 @@ print('$count 个 todo 已完成');
 
 {% if platform_name === "Go" %}
 ```go
-count, err := client.Class("Todo").NewQuery().EqualTo("isComplete", true).Count()
+count, err := Client.Class("Todo").NewQuery().EqualTo("isComplete", true).Count()
 if err != nil {
   panic(err)
 }
@@ -3638,9 +3684,9 @@ List<LCObject> results = await priorityOneOrTwo.find();
 
 {% if platform_name === "Go" %}
 ```go
-priorityQuery := client.Class("Todo").NewQuery().GreaterThanOrEqualTo("priority", 3)
-isCompleteQuery := client.Class("Todo").NewQuery().EqualTo("isComplete", true)
-query = client.Class("Todo").NewQuery().Or(priorityQuery, isCompleteQuery)
+priorityQuery := Client.Class("Todo").NewQuery().GreaterThanOrEqualTo("priority", 3)
+isCompleteQuery := Client.Class("Todo").NewQuery().EqualTo("isComplete", true)
+query = Client.Class("Todo").NewQuery().Or(priorityQuery, isCompleteQuery)
 ```
 {% endif %}
 使用 OR 查询时，子查询中不能包含 `GeoPoint` 相关的查询。
@@ -3722,9 +3768,9 @@ List<LCObject> results = await query.find();
 
 {% if platform_name === "Go" %}
 ```go
-startDateQuery := client.Class("Todo").NewQuery().GreaterThanOrEqualTo("createdAt", time.Parse("2000-01-01 00:00:00Z", "2016-11-13 00:00:00Z"))
-endDateQuery := client.Class("Todo").NewQuery().LessThan("createdAt", time.Parse("2000-01-01 00:00:00Z", "2016-12-03 00:00:00Z"))
-query := client.Class("Todo").NewQuery().And(startDateQuery, endDateQuery)
+startDateQuery := Client.Class("Todo").NewQuery().GreaterThanOrEqualTo("createdAt", time.Parse("2000-01-01 00:00:00Z", "2016-11-13 00:00:00Z"))
+endDateQuery := Client.Class("Todo").NewQuery().LessThan("createdAt", time.Parse("2000-01-01 00:00:00Z", "2016-12-03 00:00:00Z"))
+query := Client.Class("Todo").NewQuery().And(startDateQuery, endDateQuery)
 ```
 {% endif %}
 
@@ -3732,19 +3778,19 @@ query := client.Class("Todo").NewQuery().And(startDateQuery, endDateQuery)
 
 {% if platform_name === "Go" %}
 ```go
-createdAtQuery := client.Class("Todo").NewQuery().GreaterThanOrEqualTo("createdAt", time.Parse("2000-01-01", "2018-04-30")).LessThan("createdAt", time.Parse("2000-01-01", "2018-05-01"))
+createdAtQuery := Client.Class("Todo").NewQuery().GreaterThanOrEqualTo("createdAt", time.Parse("2000-01-01", "2018-04-30")).LessThan("createdAt", time.Parse("2000-01-01", "2018-05-01"))
 
-locationQuery := client.Class("Todo").NewQuery().Near("location", leancloud.GeoPoint{30, 150})
+locationQuery := Client.Class("Todo").NewQuery().Near("location", leancloud.GeoPoint{30, 150})
 
-priority2Query := client.Class("Todo").NewQuery().EqualTo("priority", 2)
+priority2Query := Client.Class("Todo").NewQuery().EqualTo("priority", 2)
 
-priority3Query := client.Class("Todo").NewQuery().EqualTo("priority", 3)
+priority3Query := Client.Class("Todo").NewQuery().EqualTo("priority", 3)
 
-priorityQuery := client.Class("Todo").NewQuery().Or(priority2Query, priority3Query)
+priorityQuery := Client.Class("Todo").NewQuery().Or(priority2Query, priority3Query)
 
-timeLocationQuery := client.Class("Todo").NewQuery().Or(createdAtQuery, locationQuery)
+timeLocationQuery := Client.Class("Todo").NewQuery().Or(createdAtQuery, locationQuery)
 
-query := client.Class("Todo").NewQuery().And(priorityQuery, timeLocationQuery)
+query := Client.Class("Todo").NewQuery().And(priorityQuery, timeLocationQuery)
 ```
 {% endif %}
 
@@ -4302,7 +4348,7 @@ file := &File{ // 构造 File 对象
   MIME: mime.TypeByExtension(filepath.Ext(name)) // 通过扩展名获取 MIME 类型
 }
 
-if err := client.Files.Upload(file, fd); err != nil {
+if err := Client.Files.Upload(file, fd); err != nil {
   panic(err)
 }
 ```
@@ -4421,7 +4467,7 @@ file := &File{
 	URL:  "https://example.com/assets/go-sdk-file-upload.txt",
 }
 
-if err := client.Files.UploadFromURL(file); err != nil {
+if err := Client.Files.UploadFromURL(file); err != nil {
   panic(err)
 }
 ```
@@ -4471,7 +4517,7 @@ file.mimeType = 'application/json';
 
 {% if platform_name === "Go" %}
 ```go
-file, err := client.Files.UploadFromFile("resume.txt")
+err := Client.Files.UploadFromLocalFile(&leancloud.File{},"path/file")
 if err != nil {
 	t.Fatal(err)
 }
@@ -4604,11 +4650,9 @@ print(file.url);
 
 {% if platform_name === "Go" %}
 ```go
-file, err := client.Files.UploadFromFile("resume.txt")
-if err != nil {
-    t.Fatal(err)
+if err := Client.Files.Upload(file, fd); err != nil {
+		panic(err)
 }
-
 fmt.Println("The URL of file is ", file.URL)
 ```
 {% endif %}
@@ -4701,7 +4745,7 @@ todo := &Todo{
   Attachment: file,
 }
 
-if err := client.Class("Todo").Create(todo); err != nil {
+if err := Client.Class("Todo").Create(todo); err != nil {
   panic(err)
 }
 ```
@@ -4739,7 +4783,7 @@ LCQuery<LCObject> query = LCQuery('_File');
 
 {% if platform_name === "Go" %}
 ```go
-query := client.Class("_File").NewQuery()
+query := Client.Class("_File").NewQuery()
 ```
 {% endif %}
 
@@ -4947,7 +4991,7 @@ file := &File{ // 构造 File 对象
   }
 }
 
-if err := client.Files.Upload(file, fd); err != nil {
+if err := Client.Files.Upload(file, fd); err != nil {
   panic(err)
 }
 
@@ -5045,7 +5089,7 @@ await file.delete();
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.File("552e0a27e4b0643b709e891e").Destroy(); err != nil {
+if err := Client.File("552e0a27e4b0643b709e891e").Destroy(); err != nil {
   panic(err)
 }
 ```
@@ -5254,7 +5298,7 @@ todo['location'] = point;
 
 {% if platform_name === "Go" %} 
 ```go
-if err := client.Class("Todo").Set("location", point); err != nil {
+if err := Client.Class("Todo").Set("location", point); err != nil {
   panic(err)
 }
 ```
@@ -5341,7 +5385,7 @@ point := &leancloud.GeoPoint{
 
 todos := make([]Todo, 0)
 
-if err := client.Class("Todo").NewQuery().Near("location", point).Limit(10).Find(&todos); err != nil {
+if err := Client.Class("Todo").NewQuery().Near("location", point).Limit(10).Find(&todos); err != nil {
   panic(err)
 }
 ```
@@ -5404,7 +5448,7 @@ query.whereWithinGeoBox('location', southwest, northeast);
 ```go
 southwest := leancloud.GeoPoint{30, 115}
 northeast := leancloud.GeoPoint{40, 118}
-query := client.Class("Todo").WithinBox("location", southwest, northeast)
+query := Client.Class("Todo").WithinBox("location", southwest, northeast)
 ```
 {% endif %}
 ### GeoPoint 的注意事项
@@ -5551,13 +5595,13 @@ await user.signUp();
 {% if platform_name === "Go" %}
 ```go
 // 注册用户
-user, err := client.Users.SignUp("Tom", "cat!@#123")
+user, err := Client.Users.SignUp("Tom", "cat!@#123")
 if err != nil {
   panic(err)
 }
 
 // 设置其它属性
-if err := client.Users.ID(user.ID).Set("email", "tom@leancloud.rocks"); err != nil {
+if err := Client.Users.ID(user.ID).Set("email", "tom@leancloud.rocks"); err != nil {
   panic(err)
 }
 ```
@@ -5612,7 +5656,7 @@ await LCSMSClient.requestSMSCode('+8618200008888');
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.Users.RequestMobilePhoneVerify("+8618200008888"); err != nil {
+if err := Client.Users.RequestMobilePhoneVerify("+8618200008888"); err != nil {
   panic(err)
 }
 ```
@@ -5661,7 +5705,7 @@ _ = LCUser.signUpOrLogIn(mobilePhoneNumber: "+8618200008888", verificationCode: 
 
 {% if platform_name === "Go" %}
 ```go
-user, err := client.Users.SignUpByMobilePhone("+8618200008888", "123456")
+user, err := Client.Users.SignUpByMobilePhone("+8618200008888", "123456")
 if err != nil {
   panic(err)
 }
@@ -5729,7 +5773,7 @@ try {
 
 {% if platform_name === "Go" %}
 ```go
-user, err := client.Users.LogIn("Tom", "cat!@#123")
+user, err := Client.Users.LogIn("Tom", "cat!@#123")
 if err != nil {
   panic(err)
 }
@@ -5787,7 +5831,7 @@ try {
 
 {% if platform_name === "Go" %}
 ```go
-user, err := client.LoginByEmail("tom@leancloud.rocks", "cat!@#123")
+user, err := Client.LoginByEmail("tom@leancloud.rocks", "cat!@#123")
 if err != nil {
   panic(err)
 }
@@ -5886,7 +5930,7 @@ await LCUser.requestLoginSMSCode('+8618200008888');
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.Users.RequestLoginSMSCode("+8618200008888"); err != nil {
+if err := Client.Users.RequestLoginSMSCode("+8618200008888"); err != nil {
     panic(err)
 }
 ```
@@ -5940,7 +5984,7 @@ try {
 
 {% if platform_name === "Go" %}
 ```go
-user, err := client.Users.LogInByMobilePhoneNumber("+8618200008888", "123456")
+user, err := Client.Users.LogInByMobilePhoneNumber("+8618200008888", "123456")
 if err != nil {
     panic(err)
 }
@@ -6013,7 +6057,7 @@ await LCUser.requestEmailVerify('tom@leancloud.rocks');
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.Users.RequestEmailVerify("tom@leancloud.rocks"); err != nil {
+if err := Client.Users.RequestEmailVerify("tom@leancloud.rocks"); err != nil {
     panic(err)
 }
 ```
@@ -6064,7 +6108,7 @@ await LCUser.requestMobilePhoneVerify('+8618200008888');
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.Users.RequestMobilePhoneVerify("+8618200008888"); err != nil {
+if err := Client.Users.RequestMobilePhoneVerify("+8618200008888"); err != nil {
     panic(err)
 }
 ```
@@ -6190,11 +6234,11 @@ $user->setMobilePhoneNumber("+8618200008888");
 {% endif %}
 {% if platform_name === "Go" %}
 ```go
-if err := client.Users.requestChangePhoneNumber("+8618200008888"); err != nil {
+if err := Client.Users.requestChangePhoneNumber("+8618200008888"); err != nil {
   panic(err)
 }
 
-if err := client.Users.ChangePhoneNumber("123456", "+8618200008888"); err != nil {
+if err := Client.Users.ChangePhoneNumber("123456", "+8618200008888"); err != nil {
   panic(err)
 }
 ```
@@ -6361,7 +6405,7 @@ await LCUser.becomeWithSessionToken('anmlwi96s381m6ca7o7266pzf');
 
 {% if platform_name === "Go" %}
 ```go
-user, err := client.Users.Become("anmlwi96s381m6ca7o7266pzf")
+user, err := Client.Users.Become("anmlwi96s381m6ca7o7266pzf")
 if err != nil {
     panic(err)
 }
@@ -6488,7 +6532,7 @@ await LCUser.requestPasswordReset('tom@leancloud.rocks');
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.Users.RequestPasswordReset("tom@leancloud.rocks"); err != nil {
+if err := Client.Users.RequestPasswordReset("tom@leancloud.rocks"); err != nil {
     panic(err)
 }
 ```
@@ -6542,7 +6586,7 @@ await LCUser.requestPasswordRestBySmsCode('+8618200008888');
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.Users.RequestPasswordResetBySmsCode("+8618200008888"); err != nil {
+if err := Client.Users.RequestPasswordResetBySmsCode("+8618200008888"); err != nil {
     panic(err)
 }
 ```
@@ -6596,7 +6640,7 @@ await LCUser.resetPasswordBySmsCode('+8618200008888', '123456', 'cat!@#123');
 
 {% if platform_name === "Go" %}
 ```go
-if err := client.Users.ResetPasswordBySmsCode("+8618200008888", "123456", "cat!@#123"); err != nil {
+if err := Client.Users.ResetPasswordBySmsCode("+8618200008888", "123456", "cat!@#123"); err != nil {
     panic(err)
 }
 ```
@@ -6636,7 +6680,7 @@ LCQuery<LCUser> userQuery = LCUser.getQuery();
 
 {% if platform_name === "Go" %}
 ```go
-userQuery := client.Users.NewUserQuery()
+userQuery := Client.Users.NewUserQuery()
 ```
 {% endif %}
 
@@ -6884,13 +6928,13 @@ try {
 
 {% if platform_name === "Go" %}
 ```go
-user, err := client.Users.LogIn("Tom", "cat!@#123")
+user, err := Client.Users.LogIn("Tom", "cat!@#123")
 if err != nil {
     panic(err)
 }
 
 // 试图修改用户名，未鉴权将失败
-if err := client.User(user).Set("username", "Jerry"); err != nil {
+if err := Client.User(user).Set("username", "Jerry"); err != nil {
     panic(err)
 }
 
@@ -6898,18 +6942,18 @@ if err := client.User(user).Set("username", "Jerry"); err != nil {
 password := user.String("password")
 
 // 可以执行，因为用户已鉴权
-if err := client.User(user).Set("username", "Jerry", UseUser(user)); err != nil {
+if err := Client.User(user).Set("username", "Jerry", UseUser(user)); err != nil {
     panic(err)
 }
 
 // 绕过鉴权直接获取用户
 unauthenticatedUser := User{}
-if err := client.Users.NewUserQuery().EqualTo("objectId", user.ID).First(&unauthenticatedUser); err != nil {
+if err := Client.Users.NewUserQuery().EqualTo("objectId", user.ID).First(&unauthenticatedUser); err != nil {
     panic(err)
 }
 
 // 会出错，因为用户未鉴权
-if err := client.User(unauthenticatedUser).Set("username", "Toodle"); err != nil {
+if err := Client.User(unauthenticatedUser).Set("username", "Toodle"); err != nil {
     panic(err)
 }
 ```
