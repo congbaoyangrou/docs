@@ -250,7 +250,7 @@ result 是一个 JSON 对象，形如：
 }
 ```
 
-如果 `status` 是 `OK`，表示任务成功，其他状态包括 `RUNNING` 表示正在运行，以及 `ERRor` 表示本次任务失败，并将返回失败信息 message。
+如果 `status` 是 `OK`，表示任务成功，其他状态包括 `RUNNING` 表示正在运行，以及 `ERROR` 表示本次任务失败，并将返回失败信息 message。
 
 `AV.Insight.JobQuery` 也可以设置 `skip` 和 `limit` 做分页查询。
 
